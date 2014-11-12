@@ -14,6 +14,8 @@
 import re
 from   capstone import *
 
+
+
 class Gadgets:
     def __init__(self, binary, options, offset):
         self.__binary  = binary
@@ -68,15 +70,17 @@ class Gadgets:
             for ref in allRefRet:
                 for i in range(self.__options.depth):
                     md = Cs(gad[C_ARCH], gad[C_MODE])
-                    decodes = md.disasm(section["opcodes"][ref-(i*gad[C_ALIGN]):ref+gad[C_SIZE]], section["vaddr"]+ref)
-                    gadget = ""
+                    depthOffset = ref-(i*gad[C_ALIGN])
+                    vaddr       = section["vaddr"]+depthOffset
+                    decodes     = md.disasm(section["opcodes"][depthOffset:ref+gad[C_SIZE]], vaddr)
+                    gadget      = str()
                     for decode in decodes:
                         gadget += (decode.mnemonic + " " + decode.op_str + " ; ").replace("  ", " ")
                     if len(gadget) > 0:
                         gadget = gadget[:-3]
-                        if (section["vaddr"]+ref-(i*gad[C_ALIGN])) % gad[C_ALIGN] == 0:
+                        if vaddr % gad[C_ALIGN] == 0:
                             off = self.__offset
-                            ret += [{"vaddr" :  off+section["vaddr"]+ref-(i*gad[C_ALIGN]), "gadget" : gadget, "decodes" : decodes, "bytes": section["opcodes"][ref-(i*gad[C_ALIGN]):ref+gad[C_SIZE]]}]
+                            ret += [{"vaddr" :  off+vaddr, "gadget" : gadget, "decodes" : decodes, "bytes": section["opcodes"][depthOffset:ref+gad[C_SIZE]]}]
         return ret
 
     def addROPGadgets(self, section):
@@ -112,10 +116,10 @@ class Gadgets:
     def addJOPGadgets(self, section):
 
         gadgetsX86      = [
-                               ["\xff[\x20\x21\x22\x23\x26\x27]{1}", 2, 1, self.__binary.getArch(), self.__binary.getArchMode()], # jmp  [reg]
-                               ["\xff[\xe0\xe1\xe2\xe3\xe4\xe6\xe7]{1}", 2, 1, self.__binary.getArch(), self.__binary.getArchMode()], # jmp  [reg]
-                               ["\xff[\x10\x11\x12\x13\x16\x17]{1}", 2, 1, self.__binary.getArch(), self.__binary.getArchMode()], # jmp  [reg]
-                               ["\xff[\xd0\xd1\xd2\xd3\xd4\xd6\xd7]{1}", 2, 1, self.__binary.getArch(), self.__binary.getArchMode()]  # call  [reg]
+                               ["\xff[\x20\x21\x22\x23\x26\x27]{1}", 2, 1, self.__binary.getArch(), self.__binary.getArchMode()],       # jmp  [reg]
+                               ["\xff[\xe0\xe1\xe2\xe3\xe4\xe6\xe7]{1}", 2, 1, self.__binary.getArch(), self.__binary.getArchMode()],   # jmp  [reg]
+                               ["\xff[\x10\x11\x12\x13\x16\x17]{1}", 2, 1, self.__binary.getArch(), self.__binary.getArchMode()],       # jmp  [reg]
+                               ["\xff[\xd0\xd1\xd2\xd3\xd4\xd6\xd7]{1}", 2, 1, self.__binary.getArch(), self.__binary.getArchMode()]    # call  [reg]
                           ]
         gadgetsSparc    = [
                                ["\x81\xc0[\x00\x40\x80\xc0]{1}\x00", 4, 4, self.__binary.getArch(), CS_MODE_BIG_ENDIAN]  # jmp %g[0-3]
