@@ -14,3 +14,5 @@
 
 import ropmakerx86
 import ropmakerx64
+import ropmakerx86_rawelf
+import ropmakerx64_rawelf
