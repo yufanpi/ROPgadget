@@ -27,9 +27,6 @@ class ROPMaker:
         self.__handlerArch()
 
     def __handlerArch(self):
-        print self.__binary.getArch(), CS_ARCH_X86 
-        print self.__binary.getArchMode(), CS_MODE_32
-        print self.__binary.getFormat()
         if self.__binary.getArch() == CS_ARCH_X86           \
             and self.__binary.getArchMode() == CS_MODE_32   \
             and self.__binary.getFormat() == "ELF":
